@@ -5,6 +5,7 @@ const {body, validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const JWT_SECRET = 'iAmSamarth';
+const fetchuser = require('../middleware/fetchuser');
 
 // create a user using POST: "/api/auth/createuser". No login reqd.
 router.post('/createuser',[
@@ -90,6 +91,19 @@ router.post('/login',[
         res.status(500).send("Server error");
     }
 
+})
+
+//Get uesr details
+
+router.post('/getuser', fetchuser, async (req, res)=> {
+    try {
+    userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.send(user);
+} catch (error) {
+    console.log(error.message);
+    res.status(500).send("Server error");
+}
 })
 
 module.exports = router
