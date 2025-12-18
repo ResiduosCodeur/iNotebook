@@ -1,9 +1,10 @@
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 import About from "./components/About";
-import NoteState from "./context/notes/Notestate.js";  
+import NoteState from "./context/notes/NoteState";
+import Alert from "./components/Alert.js";
 
 function App() {
   return (
@@ -11,11 +12,12 @@ function App() {
       <NoteState>
         <Router>
           <Navbar />
+          <Alert message="Hello and Hi" />
           <div className="container">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-          </Routes>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+            </Routes>
           </div>
         </Router>
       </NoteState>
