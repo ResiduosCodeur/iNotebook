@@ -11,7 +11,7 @@ router.get("/fetchallnotes", fetchuser, async (req, res) => {
     res.json(notes);
   } catch (error) {
     console.log(error.message);
-    res.status(500).send("Server error");
+    res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -45,7 +45,7 @@ router.post(
       res.json(savednote);
     } catch (error) {
       console.log(error.message);
-      res.status(500).send("Server error");
+      res.status(500).json({ error: "Server error" });
     }
   }
 );

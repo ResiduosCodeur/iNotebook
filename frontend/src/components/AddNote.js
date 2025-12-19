@@ -1,45 +1,45 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import noteContext from "../context/notes/noteContext";
 
 const AddNote = () => {
   const context = useContext(noteContext);
-  const { notes, addNote } = context;
+  const { addNote } = context;
+  const [note, setNote] = useState({ title: "", description: "", tag: "default" });
+  const handleClick = (e) => {
+    e.preventDefault();
+    addNote(note.title, note.description, note.tag);
+  };
+  const onChange = (e) => {
+    setNote({ ...note, [e.target.name]: e.target.value });
+  };
   return (
     <div className="container my-3">
       <h2>Add Note</h2>
       <form className="my-3">
         <div className="form-group">
-          <label htmlFor="exampleInputEmail1">Email address</label>
+          <label htmlFor="title">Title</label>
           <input
-            type="email"
+            type="text"
             className="form-control"
-            id="exampleInputEmail1"
+            id="title"
+            name="title"
             aria-describedby="emailHelp"
+            onChange={onChange}
           />
-          <small id="emailHelp" className="form-text text-muted">
-            We'll never share your email with anyone else.
-          </small>
         </div>
         <div className="form-group">
-          <label htmlFor="exampleInputPassword1">Password</label>
+          <label htmlFor="description">Description</label>
           <input
-            type="password"
+            type="text"
             className="form-control"
-            id="exampleInputPassword1"
+            id="description"
+            name="description"
+            onChange={onChange}
           />
         </div>
-        <div className="form-group form-check">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            id="exampleCheck1"
-          />
-          <label className="form-check-label" htmlFor="exampleCheck1">
-            Check me out
-          </label>
-        </div>
-        <button type="submit" className="btn btn-primary">
-          Submit
+        <div className="form-group form-check"></div>
+        <button type="submit" className="btn btn-primary" onClick={handleClick}>
+          Add Note
         </button>
       </form>
     </div>
