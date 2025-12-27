@@ -1,11 +1,9 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import NoteContext from "./noteContext";
 
 const NoteState = (props) => {
   const host = "http://localhost:5000";
-  const notesInitial = [];
-
-  const [notes, setNotes] = useState(notesInitial);
+  const [notes, setNotes] = useState([]);
 
   //Get all notes
   const getNotes = async () => {
@@ -15,75 +13,86 @@ const NoteState = (props) => {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "auth-token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjk0MTcwMzY1MTMxMGNkYzhkODNlZDAwIn0sImlhdCI6MTc2NTg5NjM3MH0.k7-SjrroB7rQ7t-hJXrUQrcP8GooJfdCR7BiJLFlBZw",
+          "auth-token": localStorage.getItem("token"),
         },
       });
       const json = await response.json();
       console.log("Fetched notes:", json);
-      setNotes(json);
+      if (response.ok && Array.isArray(json)) {
+        setNotes(json);
+      } else {
+        console.error("Unexpected notes payload or status:", {
+          status: response.status,
+          payload: json,
+        });
+        setNotes([]);
+      }
     } catch (error) {
       console.error("Error fetching notes:", error);
+      setNotes([]);
     }
   };
 
   // Add a note
   const addNote = async (title, description, tag) => {
-    // API call
-
     const response = await fetch(`${host}/api/notes/addnote`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "auth-token":
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjkyYWZiMWM0YzBhNDY4NGZkNjA3MDhhIn0sImlhdCI6MTc2NDUwMzIzM30.kM1TkXST3xwqXffsaDrQKgjOXkHgMM5dsslFEIHvM8c",
+        "auth-token": localStorage.getItem("token"),
       },
       body: JSON.stringify({ title, description, tag }),
     });
 
-    console.log("adding a new note");
-
-    const note = {
-      _id: "694170fa51310cdc8d83ed0a",
-      user: "6941703651310cdc8d83ed00",
-      title: title,
-      description: description,
-      tag: tag,
-      date: "2025-12-16T14:47:22.287Z",
-      __v: 0,
-    };
-
-    setNotes(notes.concat(note));
+    if (!response.ok) {
+      const errorPayload = await response.text();
+      console.error("Add note failed:", response.status, errorPayload);
+      return;
+    }
+    const savedNote = await response.json();
+    setNotes(notes.concat(savedNote));
   };
 
   // Delete a note
-  const deleteNote = (id) => {
-    console.log("deleting the note with id" + id);
+  const deleteNote = async (id) => {
+    const response = await fetch(`${host}/api/notes/deletenote/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "auth-token": localStorage.getItem("token"),
+      },
+    });
+
+    if (!response.ok) {
+      const errorPayload = await response.text();
+      console.error("Delete note failed:", response.status, errorPayload);
+      return;
+    }
+    await response.json();
+
     const newNotes = notes.filter((note) => note._id !== id);
     setNotes(newNotes);
   };
   // Edit a note
 
   const editNote = async (id, title, description, tag) => {
-    // API call
     const response = await fetch(`${host}/api/notes/updatenote/${id}`, {
-      method: "POST",
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "auth-token":
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjkyYWZiMWM0YzBhNDY4NGZkNjA3MDhhIn0sImlhdCI6MTc2NDUwMzIzM30.kM1TkXST3xwqXffsaDrQKgjOXkHgMM5dsslFEIHvM8c",
+        "auth-token": localStorage.getItem("token"),
       },
       body: JSON.stringify({ title, description, tag }),
     });
-    const json = response.json();
-    for (let index = 0; index < notes.length; index++) {
-      const element = notes[index];
-      if (element._id === id) {
-        element.title = title;
-        element.description = description;
-        element.tag = tag;
-      }
+
+    if (!response.ok) {
+      const errorPayload = await response.text();
+      console.error("Edit note failed:", response.status, errorPayload);
+      return;
     }
+    const result = await response.json();
+    const updated = result.note ?? result; // backend sends {note}
+    setNotes(notes.map((n) => (n._id === id ? { ...n, ...updated } : n)));
   };
 
   return (
